@@ -47,8 +47,8 @@ def getData(path):
 def visualizeAge(data):
     plt.figure(figsize=(10, 5))
     sns.distplot(data['Age'])
-
-    g = sns.FacetGrid(overview, hue="Contrast", size=6, legend_out=True)
+    # 按Contrast类别区分作图颜色
+    g = sns.FacetGrid(data, hue="Contrast", size=6, legend_out=True)
     g = g.map(sns.distplot, "Age").add_legend()
 
     plt.show()
@@ -78,7 +78,7 @@ def setLabel(imagesPathList):
 
     return label, id_list
 
-# 设置shape
+# 创建训练集和验证集和测试集
 def createSet(imagesPathList):
     # 使用切片操作imread(x)[::2, ::2],跨两步选取一个值,降低维度,提高训练速度
     jimread = lambda x: np.expand_dims(imread(x)[::2, ::2], 0)
@@ -149,13 +149,13 @@ def CNNmodel(input_train, output_train, input_test, output_test):
 
 
 # main
-# fileInfo(datasetPath)
+fileInfo(datasetPath)
 # 读取数据
-# overview = getData(overviewPath)
+overview = getData(overviewPath)
 #
-# visualizeAge(overview)
+visualizeAge(overview)
 pathlist = pathList(datasetPath)
-# showCT(pathlist)
+showCT(pathlist)
 input_train, output_train, input_test, output_test = createSet(pathlist)
 # 运行模型
 CNNmodel(input_train, output_train, input_test, output_test)
