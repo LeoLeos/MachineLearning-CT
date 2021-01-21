@@ -79,23 +79,15 @@ def setLabel(imagesPathList):
     return label, id_list
 
 # 设置shape
-def putShape(imagesPathList):
-    print(imread(imagesPathList[0]).shape)
+def createSet(imagesPathList):
     # 使用切片操作imread(x)[::2, ::2],跨两步选取一个值,降低维度,提高训练速度
     jimread = lambda x: np.expand_dims(imread(x)[::2, ::2], 0)
     images = np.stack([jimread(i) for i in imagesPathList], 0)
-    print(jimread(imagesPathList[0]).shape)
-    print(images.shape)
-
-    aa = [jimread(i) for i in imagesPathList]
-    print(len(aa))
-
     label, id_list = setLabel(imagesPathList)
     label_list = pd.DataFrame(label, id_list)
     X_train, X_test, y_train, y_test = train_test_split(images, label_list, test_size=0.1, random_state=0)
     n_train, depth, width, height = X_train.shape
     n_test, _, _, _ = X_test.shape
-    input_shape = (width, height, depth)
 
     # 归一化
     input_train = X_train.reshape((n_train, width, height, depth))
@@ -107,17 +99,21 @@ def putShape(imagesPathList):
     # 设置类别
     output_train = keras.utils.to_categorical(y_train, 2)
     output_test = keras.utils.to_categorical(y_test, 2)
+    return input_train, output_train, input_test, output_test
 
+# 创建CNN神经网络模型
+def CNNmodel(input_train, output_train, input_test, output_test):
     # 设置参数
     batch_size = 20
     epochs = 20
 
     # 构建网络
     model2 = Sequential()
-    model2.add(Conv2D(50, (5, 5), activation='relu', input_shape=input_shape))
+    # input_train.shape[1:]作用单个样本的shape,第一个位置代表样本数目
+    model2.add(Conv2D(50, (5, 5), activation='relu', input_shape=input_train.shape[1:]))
     # 使用32个4x4过滤器创建卷积网络
     model2.add(MaxPooling2D(pool_size=(3, 3)))  # 3x3 Maxpooling
-    model2.add(Conv2D(30, (4, 4), activation='relu', input_shape=input_shape))
+    model2.add(Conv2D(30, (4, 4), activation='relu', input_shape=input_train.shape[1:]))
     model2.add(MaxPooling2D(pool_size=(2, 2)))  # 2x2 Maxpooling
     model2.add(Flatten())  # 膨胀已创建全连接神经网络
     model2.add(Dense(2, activation='softmax'))
@@ -160,5 +156,6 @@ def putShape(imagesPathList):
 # visualizeAge(overview)
 pathlist = pathList(datasetPath)
 # showCT(pathlist)
-setLabel(pathlist)
-putShape(pathlist)
+input_train, output_train, input_test, output_test = createSet(pathlist)
+# 运行模型
+CNNmodel(input_train, output_train, input_test, output_test)
