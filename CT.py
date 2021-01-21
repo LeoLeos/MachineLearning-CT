@@ -1,9 +1,9 @@
 #! usr/bin/python
 # -*- coding:utf-8 -*-
-# @Author: winston he
+# @Author: LeoLucky
 # @File: test.py
 # @Time: 2021-01-20 09:50
-# @Email: winston.wz.he@gmail.com
+# @Email: 568428442@qq.com
 # @Desc:
 
 
@@ -62,7 +62,7 @@ def pathList(datasetPath):
 def showCT(imagesPathList):
     f, ax = plt.subplots(10, 10, figsize=(10, 10))
     for index, i in enumerate(imagesPathList):
-        ax[int(index/10), index%10].matshow(imread(i), cmap='gray')
+        ax[int(index / 10), index % 10].matshow(imread(i), cmap='gray')
     plt.show()
 
 # 设置label
@@ -80,8 +80,16 @@ def setLabel(imagesPathList):
 
 # 设置shape
 def putShape(imagesPathList):
+    print(imread(imagesPathList[0]).shape)
+    # 使用切片操作imread(x)[::2, ::2],跨两步选取一个值,降低维度,提高训练速度
     jimread = lambda x: np.expand_dims(imread(x)[::2, ::2], 0)
     images = np.stack([jimread(i) for i in imagesPathList], 0)
+    print(jimread(imagesPathList[0]).shape)
+    print(images.shape)
+
+    aa = [jimread(i) for i in imagesPathList]
+    print(len(aa))
+
     label, id_list = setLabel(imagesPathList)
     label_list = pd.DataFrame(label, id_list)
     X_train, X_test, y_train, y_test = train_test_split(images, label_list, test_size=0.1, random_state=0)
@@ -102,16 +110,16 @@ def putShape(imagesPathList):
 
     # 设置参数
     batch_size = 20
-    epochs = 40
+    epochs = 20
 
     # 构建网络
     model2 = Sequential()
     model2.add(Conv2D(50, (5, 5), activation='relu', input_shape=input_shape))
-    # 32개의 4x4 Filter 를 이용하여 Convolutional Network생성
+    # 使用32个4x4过滤器创建卷积网络
     model2.add(MaxPooling2D(pool_size=(3, 3)))  # 3x3 Maxpooling
     model2.add(Conv2D(30, (4, 4), activation='relu', input_shape=input_shape))
     model2.add(MaxPooling2D(pool_size=(2, 2)))  # 2x2 Maxpooling
-    model2.add(Flatten())  # 쭉풀어서 Fully Connected Neural Network를 만든다.
+    model2.add(Flatten())  # 膨胀已创建全连接神经网络
     model2.add(Dense(2, activation='softmax'))
 
     # 显示训练模型摘要
@@ -119,7 +127,7 @@ def putShape(imagesPathList):
 
     # 整合模型
     model2.compile(loss='categorical_crossentropy',
-                  optimizer=RMSprop(),
+                  optimizer=Adam(),
                   metrics=['accuracy'])
 
     # 开始训练
@@ -135,9 +143,12 @@ def putShape(imagesPathList):
 
     # 可视化训练过程
     print(history.history.keys())
+    print('Test loss:', score[0])
+    print('Test accuracy:', score[1])
     plt.plot(history.history['loss'])
     plt.plot(history.history['accuracy'])
     plt.show()
+
 
 
 
